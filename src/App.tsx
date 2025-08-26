@@ -10,6 +10,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Login } from './pages/Login';
 import { UsersList } from './pages/UsersList';
 import { TasksList } from './pages/TasksList';
+import { CategoriesAndTags } from './pages/CategoriesAndTags';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,6 +55,7 @@ function App() {
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="tasks" element={<TasksList />} />
                 <Route path="users" element={<UsersList />} />
+                <Route path="categories" element={<CategoriesAndTags />} />
                 <Route path="analytics" element={<div>Analytics page coming soon</div>} />
                 <Route path="settings" element={<div>Settings page coming soon</div>} />
               </Route>
