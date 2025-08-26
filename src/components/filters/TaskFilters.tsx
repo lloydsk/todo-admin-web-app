@@ -47,7 +47,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
   users,
   onClearFilters,
 }) => {
-  const handleFilterChange = (key: keyof TaskFilterState, value: any) => {
+  const handleFilterChange = <K extends keyof TaskFilterState>(key: K, value: TaskFilterState[K]) => {
     onFiltersChange({
       ...filters,
       [key]: value,
@@ -143,7 +143,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
             <InputLabel>Status</InputLabel>
             <Select
               value={filters.status}
-              onChange={(e) => handleFilterChange('status', e.target.value)}
+              onChange={(e) => handleFilterChange('status', e.target.value as TaskStatus | '')}
               label="Status"
             >
               <MenuItem value="">All Statuses</MenuItem>
@@ -159,7 +159,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
             <InputLabel>Priority</InputLabel>
             <Select
               value={filters.priority}
-              onChange={(e) => handleFilterChange('priority', e.target.value)}
+              onChange={(e) => handleFilterChange('priority', e.target.value as TaskPriority | '')}
               label="Priority"
             >
               <MenuItem value="">All Priorities</MenuItem>

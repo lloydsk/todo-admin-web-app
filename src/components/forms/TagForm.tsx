@@ -21,7 +21,7 @@ const tagSchema = z.object({
   name: z.string()
     .min(1, 'Name is required')
     .max(50, 'Name must be less than 50 characters')
-    .regex(/^[a-zA-Z0-9\s\-_]+$/, 'Name can only contain letters, numbers, spaces, hyphens, and underscores'),
+    .regex(/^[a-zA-Z0-9\s_-]+$/, 'Name can only contain letters, numbers, spaces, hyphens, and underscores'),
   color: z.string().min(1, 'Color is required').regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid color format'),
 });
 
