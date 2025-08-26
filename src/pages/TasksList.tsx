@@ -3,20 +3,13 @@ import {
   Box,
   Typography,
   Button,
-  TextField,
-  InputAdornment,
   Chip,
   Alert,
   Snackbar,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Toolbar,
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Search as SearchIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   CheckCircle as CheckCircleIcon,
@@ -25,18 +18,28 @@ import { DataGrid, GridColDef, GridActionsCellItem, GridRowParams, GridRowSelect
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, useBulkUpdateTasks, useBulkDeleteTasks } from '../hooks/useTasks';
 import { useUsers } from '../hooks/useUsers';
 import { TaskForm } from '../components/forms/TaskForm';
+import { TaskFilters, TaskFilterState } from '../components/filters/TaskFilters';
 import { Task, TaskStatus, TaskPriority, CreateTaskRequest, UpdateTaskRequest } from '../types/api';
 
 export const TasksList: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | ''>('');
+  const [filters, setFilters] = useState<TaskFilterState>({
+    searchQuery: '',
+    status: '',
+    priority: '',
+    assigneeId: '',
+    dueDateFrom: null,
+    dueDateTo: null,
+    createdDateFrom: null,
+    createdDateTo: null,
+  });
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([]);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
 
   const { data: tasksResponse, isLoading, error } = useTasks({
-    status: statusFilter || undefined,
+    status: filters.status || undefined,
+    assigneeId: filters.assigneeId || undefined,
     pageInfo: { pageSize: 100 },
   });
 
@@ -233,10 +236,65 @@ export const TasksList: React.FC = () => {
     );
   }
 
-  const filteredTasks = (tasksResponse?.tasks || []).filter(task =>
-    task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    task.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Client-side filtering for advanced filters
+  const filteredTasks = (tasksResponse?.tasks || []).filter(task => {
+    // Search query filter
+    if (filters.searchQuery) {
+      const searchLower = filters.searchQuery.toLowerCase();
+      const matchesSearch = 
+        task.title.toLowerCase().includes(searchLower) ||
+        task.description.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+
+    // Priority filter
+    if (filters.priority && task.priority !== filters.priority) {
+      return false;
+    }
+
+    // Due date range filter
+    if (filters.dueDateFrom && task.dueDate) {
+      const taskDueDate = new Date(task.dueDate);
+      const filterFromDate = new Date(filters.dueDateFrom);
+      if (taskDueDate < filterFromDate) return false;
+    }
+    
+    if (filters.dueDateTo && task.dueDate) {
+      const taskDueDate = new Date(task.dueDate);
+      const filterToDate = new Date(filters.dueDateTo);
+      filterToDate.setHours(23, 59, 59, 999); // End of day
+      if (taskDueDate > filterToDate) return false;
+    }
+
+    // Created date range filter
+    if (filters.createdDateFrom) {
+      const taskCreatedDate = new Date(task.createdAt);
+      const filterFromDate = new Date(filters.createdDateFrom);
+      if (taskCreatedDate < filterFromDate) return false;
+    }
+    
+    if (filters.createdDateTo) {
+      const taskCreatedDate = new Date(task.createdAt);
+      const filterToDate = new Date(filters.createdDateTo);
+      filterToDate.setHours(23, 59, 59, 999); // End of day
+      if (taskCreatedDate > filterToDate) return false;
+    }
+
+    return true;
+  });
+
+  const handleClearFilters = () => {
+    setFilters({
+      searchQuery: '',
+      status: '',
+      priority: '',
+      assigneeId: '',
+      dueDateFrom: null,
+      dueDateTo: null,
+      createdDateFrom: null,
+      createdDateTo: null,
+    });
+  };
 
   return (
     <Box>
@@ -251,36 +309,12 @@ export const TasksList: React.FC = () => {
         </Button>
       </Box>
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-        <TextField
-          placeholder="Search tasks..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ flex: 1 }}
-        />
-        
-        <FormControl sx={{ minWidth: 150 }}>
-          <InputLabel>Status Filter</InputLabel>
-          <Select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as TaskStatus)}
-            label="Status Filter"
-          >
-            <MenuItem value="">All Statuses</MenuItem>
-            <MenuItem value={TaskStatus.OPEN}>Open</MenuItem>
-            <MenuItem value={TaskStatus.IN_PROGRESS}>In Progress</MenuItem>
-            <MenuItem value={TaskStatus.COMPLETED}>Completed</MenuItem>
-            <MenuItem value={TaskStatus.UNDOABLE}>Cannot Be Done</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
+      <TaskFilters
+        filters={filters}
+        onFiltersChange={setFilters}
+        users={users}
+        onClearFilters={handleClearFilters}
+      />
 
       {selectedRows.length > 0 && (
         <Toolbar sx={{ bgcolor: 'primary.light', mb: 2, borderRadius: 1 }}>
