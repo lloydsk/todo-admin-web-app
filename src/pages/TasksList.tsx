@@ -13,12 +13,14 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   CheckCircle as CheckCircleIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridActionsCellItem, GridRowParams, GridRowSelectionModel } from '@mui/x-data-grid';
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, useBulkUpdateTasks, useBulkDeleteTasks } from '../hooks/useTasks';
 import { useUsers } from '../hooks/useUsers';
 import { TaskForm } from '../components/forms/TaskForm';
 import { TaskFilters, TaskFilterState } from '../components/filters/TaskFilters';
+import { TaskHistoryDialog } from '../components/history/TaskHistoryDialog';
 import { Task, TaskStatus, TaskPriority, CreateTaskRequest, UpdateTaskRequest } from '../types/api';
 
 export const TasksList: React.FC = () => {
@@ -34,6 +36,8 @@ export const TasksList: React.FC = () => {
   });
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [historyTask, setHistoryTask] = useState<Task | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([]);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
 
@@ -60,6 +64,11 @@ export const TasksList: React.FC = () => {
   const handleEditTask = (task: Task) => {
     setSelectedTask(task);
     setFormOpen(true);
+  };
+
+  const handleViewHistory = (task: Task) => {
+    setHistoryTask(task);
+    setHistoryOpen(true);
   };
 
   const handleFormSubmit = async (data: { title: string; description?: string; assigneeId: string; status: TaskStatus; priority?: TaskPriority }) => {
@@ -209,7 +218,7 @@ export const TasksList: React.FC = () => {
       field: 'actions',
       type: 'actions',
       headerName: 'Actions',
-      width: 120,
+      width: 160,
       getActions: (params: GridRowParams) => {
         const task = params.row as Task;
         return [
@@ -217,6 +226,11 @@ export const TasksList: React.FC = () => {
             icon={<EditIcon />}
             label="Edit"
             onClick={() => handleEditTask(task)}
+          />,
+          <GridActionsCellItem
+            icon={<HistoryIcon />}
+            label="History"
+            onClick={() => handleViewHistory(task)}
           />,
           <GridActionsCellItem
             icon={<DeleteIcon />}
@@ -361,6 +375,13 @@ export const TasksList: React.FC = () => {
         task={selectedTask || undefined}
         loading={createTask.isPending || updateTask.isPending}
         error={createTask.error?.message || updateTask.error?.message}
+      />
+
+      <TaskHistoryDialog
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        task={historyTask}
+        users={users}
       />
 
       <Snackbar
