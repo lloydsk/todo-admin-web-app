@@ -24,6 +24,7 @@ import {
   Analytics as AnalyticsIcon,
   AccountCircle,
   Logout,
+  Category as CategoryIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -40,6 +41,7 @@ const navItems: NavItem[] = [
   { label: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { label: 'Tasks', icon: <TaskIcon />, path: '/tasks' },
   { label: 'Users', icon: <PeopleIcon />, path: '/users' },
+  { label: 'Categories & Tags', icon: <CategoryIcon />, path: '/categories' },
   { label: 'Analytics', icon: <AnalyticsIcon />, path: '/analytics' },
   { label: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];

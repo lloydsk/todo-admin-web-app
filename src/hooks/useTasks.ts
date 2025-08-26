@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { taskService } from '../services/tasks';
+import { enhanceTasksWithHistory } from '../utils/mockData';
 import {
   CreateTaskRequest,
   CreateTaskResponse,
@@ -15,7 +16,13 @@ import {
 export const useTasks = (request: ListTasksRequest = {}) => {
   return useQuery<ListTasksResponse>({
     queryKey: ['tasks', request],
-    queryFn: () => taskService.listTasks(request),
+    queryFn: async () => {
+      const response = await taskService.listTasks(request);
+      return {
+        ...response,
+        tasks: enhanceTasksWithHistory(response.tasks),
+      };
+    },
   });
 };
 
